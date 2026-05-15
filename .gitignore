@@ -7,6 +7,10 @@ build/
 .next/
 out/
 coverage/
+.turbo/
+.vercel/
+playwright-report/
+test-results/
 
 # local env
 .env
