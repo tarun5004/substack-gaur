@@ -60,6 +60,14 @@ export const postsService = {
     const posts = await postsRepository.findByAuthor(user.id);
     return posts.map(toPostDTO);
   },
+  async getMine(user, postId) {
+    const post = await postsRepository.findById(postId);
+    if (!post) {
+      throw new ApiError(HttpStatus.NOT_FOUND, "Post not found");
+    }
+    await assertPublicationOwner(entityId(post.publicationId), user);
+    return toPostDTO(post);
+  },
   async create(user, data) {
     await assertPublicationOwner(data.publicationId, user);
     const slug = data.slug?.toLowerCase() || createSlug(data.title);

@@ -1,7 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
-import { EyeOff, Send, Trash2 } from "lucide-react";
+import { EyeOff, Pencil, Send, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -108,7 +109,7 @@ export function PostManagement() {
             ? posts.map((post) => (
                 <div
                   key={post.id}
-                  className="grid gap-3 py-4 md:grid-cols-[minmax(0,1fr)_120px_100px_220px] md:items-center"
+                  className="grid gap-3 py-4 md:grid-cols-[minmax(0,1fr)_120px_100px_300px] md:items-center"
                 >
                   <div className="min-w-0">
                     <p className="font-medium">{post.title}</p>
@@ -123,6 +124,12 @@ export function PostManagement() {
                     {post.readTimeMinutes} min read
                   </span>
                   <div className="flex flex-wrap gap-2 md:justify-end">
+                    <Button asChild type="button" variant="outline" size="sm">
+                      <Link href={`/dashboard/editor/${post.id}`}>
+                        <Pencil className="size-4" />
+                        Edit
+                      </Link>
+                    </Button>
                     {post.status === "published" ? (
                       <Button
                         type="button"

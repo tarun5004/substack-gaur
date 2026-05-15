@@ -19,6 +19,10 @@ export const postsController = {
     const posts = await postsService.listMine(req.user);
     res.status(HttpStatus.OK).json(new ApiResponse(HttpStatus.OK, posts, "Your posts"));
   }),
+  getMine: asyncHandler(async (req, res) => {
+    const post = await postsService.getMine(req.user, req.params.id);
+    res.status(HttpStatus.OK).json(new ApiResponse(HttpStatus.OK, post, "Your post"));
+  }),
   create: asyncHandler(async (req, res) => {
     const post = await postsService.create(req.user, req.body);
     res.status(HttpStatus.CREATED).json(new ApiResponse(HttpStatus.CREATED, post, "Post created"));

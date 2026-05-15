@@ -13,6 +13,12 @@ export const postRoutes = Router();
 postRoutes.get("/", validateRequest(listPostsQuerySchema, "query"), postsController.listPublished);
 postRoutes.get("/mine", requireAuth, postsController.listMine);
 postRoutes.get(
+  "/mine/:id",
+  requireAuth,
+  validateRequest(postIdParamsSchema, "params"),
+  postsController.getMine,
+);
+postRoutes.get(
   "/:slug",
   validateRequest(postSlugParamsSchema, "params"),
   postsController.getPublished,

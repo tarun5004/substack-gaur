@@ -397,6 +397,41 @@ describe("auth", () => {
     expect(response.body.data.content.text).toBe("Keep this body");
   });
 
+  it("returns owned post detail for editor loading", async () => {
+    const ownerCookies = await createSessionCookies();
+    const otherWriterCookies = await createSessionCookies();
+    const publication = await request(app)
+      .post("/api/publications")
+      .set("Cookie", ownerCookies)
+      .send({
+        name: "Editor Detail Publication",
+        slug: "editor-detail-publication",
+      });
+    const post = await request(app)
+      .post("/api/posts")
+      .set("Cookie", ownerCookies)
+      .send({
+        publicationId: publication.body.data.id,
+        title: "Editable Draft",
+        content: {
+          html: "<p>Draft content</p>",
+          text: "Draft content",
+        },
+      });
+
+    const ownerResponse = await request(app)
+      .get(`/api/posts/mine/${post.body.data.id}`)
+      .set("Cookie", ownerCookies);
+    const forbiddenResponse = await request(app)
+      .get(`/api/posts/mine/${post.body.data.id}`)
+      .set("Cookie", otherWriterCookies);
+
+    expect(ownerResponse.status).toBe(200);
+    expect(ownerResponse.body.data.title).toBe("Editable Draft");
+    expect(ownerResponse.body.data.content.text).toBe("Draft content");
+    expect(forbiddenResponse.status).toBe(403);
+  });
+
   it("rejects empty post patches", async () => {
     const cookies = await createSessionCookies();
     const publication = await request(app).post("/api/publications").set("Cookie", cookies).send({
