@@ -29,6 +29,7 @@ Route -> Validator -> Controller -> Service -> Repository -> Model
 npm run dev -w @sahyogi/server
 npm run test:run -w @sahyogi/server
 npm run build -w @sahyogi/server
+npm run seed:demo -w @sahyogi/server
 ```
 
 ## Environment
@@ -57,3 +58,23 @@ Older deployments that already define `JWT_SECRET` still work. New deployments
 should prefer separate `JWT_ACCESS_SECRET` and `JWT_REFRESH_SECRET` values.
 
 Cloudinary variables power authenticated image uploads through `/api/uploads/image`.
+
+## Demo Seed
+
+The optional demo seed creates one writer, one publication, published posts, one
+draft, and sample subscribers for local verification.
+
+Set these local-only values in `apps/server/.env` before running it:
+
+```txt
+DEMO_USER_EMAIL=demo.writer@example.com
+DEMO_USER_PASSWORD=replace-with-local-demo-password
+```
+
+Then run:
+
+```bash
+npm run seed:demo -w @sahyogi/server
+```
+
+The seed is idempotent and refuses to run when `NODE_ENV=production`.
