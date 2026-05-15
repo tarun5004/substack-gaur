@@ -96,9 +96,3 @@ export const seedPublications = [
     subscriberCount: 12880,
   },
 ];
-export const dashboardMetrics = [
-  { label: "Subscribers", value: "18.4k", delta: "+12.8% this month" },
-  { label: "Published posts", value: "42", delta: "6 scheduled" },
-  { label: "Avg. read rate", value: "71%", delta: "+4.1% from last issue" },
-  { label: "Revenue ready", value: "Soon", delta: "Payments architecture prepared" },
-];
