@@ -1,7 +1,8 @@
 "use client";
 import { useState } from "react";
 import { toast } from "sonner";
-import { api } from "@/services/api";
+import { getApiErrorMessage } from "@/services/api";
+import { subscribeToPublication } from "@/services/publications";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 export function SubscribeForm({ publicationSlug }) {
@@ -11,14 +12,14 @@ export function SubscribeForm({ publicationSlug }) {
     event.preventDefault();
     setPending(true);
     try {
-      await api.post(`/api/publications/${publicationSlug}/subscribe`, {
+      await subscribeToPublication(publicationSlug, {
         email,
         source: "publication_page",
       });
       toast.success("You are subscribed");
       setEmail("");
-    } catch {
-      toast.error("Subscription could not be saved");
+    } catch (error) {
+      toast.error(getApiErrorMessage(error, "Subscription could not be saved"));
     } finally {
       setPending(false);
     }

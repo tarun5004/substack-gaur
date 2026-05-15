@@ -19,3 +19,13 @@ export async function getPublicationSubscribers(publicationId, params = {}) {
   const response = await api.get(`/api/publications/${publicationId}/subscribers`, { params });
   return response.data.data;
 }
+
+export async function subscribeToPublication(publicationSlug, payload) {
+  const response = await api.post(`/api/publications/${publicationSlug}/subscribe`, payload);
+  return response.data.data;
+}
+
+export async function unsubscribeFromPublication(publicationSlug, payload) {
+  const response = await api.post(`/api/publications/${publicationSlug}/unsubscribe`, payload);
+  return response.data.data;
+}
