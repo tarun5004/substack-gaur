@@ -1,6 +1,6 @@
 import { format } from "date-fns";
 import { notFound } from "next/navigation";
-import { SiteHeader } from "@/components/site/site-header";
+import { AppShell } from "@/components/site/app-shell";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { CoverFrame } from "@/components/content/cover-frame";
@@ -20,6 +20,24 @@ export async function generateMetadata({ params }) {
     description: post.subtitle,
   };
 }
+
+function PostRightRail({ post }) {
+  return (
+    <section className="rounded-lg border bg-card p-5">
+      <p className="text-xs font-medium uppercase tracking-normal text-muted-foreground">
+        {post.publication.name}
+      </p>
+      <h2 className="mt-3 text-lg font-semibold">{post.publication.tagline}</h2>
+      <p className="mt-3 text-sm leading-6 text-muted-foreground">
+        Get the next issue when it is published.
+      </p>
+      <div className="mt-5">
+        <SubscribeForm publicationSlug={post.publication.slug} />
+      </div>
+    </section>
+  );
+}
+
 export default async function PostPage({ params }) {
   const { slug } = await params;
   const post = await getPost(slug);
@@ -28,46 +46,30 @@ export default async function PostPage({ params }) {
   }
 
   return (
-    <>
-      <SiteHeader />
-      <main>
-        <article className="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="outline">{post.category}</Badge>
-            <span className="text-sm text-muted-foreground">
-              {format(new Date(post.publishedAt), "MMMM d, yyyy")} &middot;{" "}
-              {post.readTimeMinutes} min read
-            </span>
+    <AppShell active="home" rightRail={<PostRightRail post={post} />}>
+      <article>
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge variant="outline">{post.category}</Badge>
+          <span className="text-sm text-muted-foreground">
+            {format(new Date(post.publishedAt), "MMMM d, yyyy")} &middot; {post.readTimeMinutes} min
+            read
+          </span>
+        </div>
+        <h1 className="mt-6 font-serif text-4xl leading-tight sm:text-6xl">{post.title}</h1>
+        <p className="mt-5 text-xl leading-8 text-muted-foreground">{post.subtitle}</p>
+        <div className="mt-8 flex items-center gap-3">
+          <Avatar name={post.author.fullName} src={post.author.avatarUrl} />
+          <div>
+            <p className="font-medium">{post.author.fullName}</p>
+            <p className="text-sm text-muted-foreground">{post.publication.name}</p>
           </div>
-          <h1 className="mt-6 font-serif text-5xl leading-tight sm:text-6xl">{post.title}</h1>
-          <p className="mt-5 text-xl leading-8 text-muted-foreground">{post.subtitle}</p>
-          <div className="mt-8 flex items-center gap-3">
-            <Avatar name={post.author.fullName} src={post.author.avatarUrl} />
-            <div>
-              <p className="font-medium">{post.author.fullName}</p>
-              <p className="text-sm text-muted-foreground">{post.publication.name}</p>
-            </div>
-          </div>
-          <CoverFrame title={post.title} className="mt-10 aspect-[16/8]" />
-          <div
-            className="prose-sahyogi editorial-measure mx-auto mt-10"
-            dangerouslySetInnerHTML={{ __html: post.content.html }}
-          />
-        </article>
-        <section className="border-t bg-secondary/35">
-          <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
-            <h2 className="text-2xl font-semibold">
-              Read the next issue from {post.publication.name}
-            </h2>
-            <p className="mt-2 text-sm leading-6 text-muted-foreground">
-              {post.publication.tagline}
-            </p>
-            <div className="mt-6 max-w-xl">
-              <SubscribeForm publicationSlug={post.publication.slug} />
-            </div>
-          </div>
-        </section>
-      </main>
-    </>
+        </div>
+        <CoverFrame title={post.title} className="mt-10 aspect-[16/8]" />
+        <div
+          className="prose-sahyogi editorial-measure mx-auto mt-10"
+          dangerouslySetInnerHTML={{ __html: post.content.html }}
+        />
+      </article>
+    </AppShell>
   );
 }
