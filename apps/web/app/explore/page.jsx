@@ -8,6 +8,9 @@ export const metadata = {
   title: "Explore",
   description: "Discover Sahyogi publications and essays.",
 };
+
+export const dynamic = "force-dynamic";
+
 export default async function ExplorePage({ searchParams }) {
   const params = await searchParams;
   const query = typeof params?.q === "string" ? params.q.trim() : "";

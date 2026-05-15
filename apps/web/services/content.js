@@ -1,6 +1,13 @@
 import { seedPosts, seedPublications } from "@/services/seed-data";
 import { apiRootUrl, buildApiUrl } from "@/services/api-config";
 
+class ContentApiError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = "ContentApiError";
+  }
+}
+
 function withQuery(path, params = {}) {
   const query = new URLSearchParams();
 
@@ -14,7 +21,7 @@ function withQuery(path, params = {}) {
   return queryString ? `${path}?${queryString}` : path;
 }
 
-async function apiFetch(path) {
+async function apiFetch(path, options = {}) {
   const url = buildApiUrl(path);
 
   if (!url) {
@@ -28,13 +35,23 @@ async function apiFetch(path) {
         Accept: "application/json",
       },
     });
-    if (!response.ok) {
+
+    if (response.status === 404 && options.notFoundAsNull) {
       return null;
     }
+
+    if (!response.ok) {
+      throw new ContentApiError("Sahyogi API returned an unexpected response.");
+    }
+
     const envelope = await response.json();
     return envelope.data;
-  } catch {
-    return null;
+  } catch (error) {
+    if (error instanceof ContentApiError) {
+      throw error;
+    }
+
+    throw new ContentApiError("Sahyogi API could not be reached.");
   }
 }
 export async function getFeaturedPosts(params = {}) {
@@ -46,7 +63,7 @@ export async function getFeaturedPosts(params = {}) {
   return apiRootUrl ? [] : seedPosts;
 }
 export async function getPost(slug) {
-  const post = await apiFetch(`/api/posts/${slug}`);
+  const post = await apiFetch(`/api/posts/${slug}`, { notFoundAsNull: true });
   return post ?? (!apiRootUrl ? seedPosts.find((item) => item.slug === slug) : null) ?? null;
 }
 export async function getPublications() {
@@ -58,7 +75,7 @@ export async function getPublications() {
   return apiRootUrl ? [] : seedPublications;
 }
 export async function getPublication(slug) {
-  const publication = await apiFetch(`/api/publications/${slug}`);
+  const publication = await apiFetch(`/api/publications/${slug}`, { notFoundAsNull: true });
   return (
     publication ??
     (!apiRootUrl ? seedPublications.find((item) => item.slug === slug) : null) ??
