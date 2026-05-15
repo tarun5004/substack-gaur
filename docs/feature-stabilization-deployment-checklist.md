@@ -1,77 +1,91 @@
 # Feature Stabilization And Deployment Readiness Checklist
 
-Branch: `fix/feature-stabilization-deployment-ready`
+Historical branch: `fix/feature-stabilization-deployment-ready`
+
+Current cleanup branch: `chore/codebase-cleanup-ui-stabilization`
+
+This checklist records what the previous stabilization branch fixed and what still
+needs attention. The active execution plan now lives in
+`docs/cleanup-ui-stabilization-roadmap.md`.
 
 ## Ground Rules
 
 - Real credentials stay only in local `.env` files.
-- Do not commit `.env`, `.env.local`, `apps/server/.env`, or `apps/web/.env.local`.
+- Do not commit `.env`, `.env.local`, `apps/server/.env`, or
+  `apps/web/.env.local`.
 - `.env.example` files must use placeholders or safe local examples only.
-- Keep API access behind shared config/service helpers.
-- Keep backend modules separated by route, controller, service, repository, model, validation, middleware, config, and utils.
+- Keep API access behind shared config and service helpers.
+- Keep backend modules separated by route, controller, service, repository,
+  model, validation, middleware, config, and utils.
 
-## Current Audit Findings
+## Completed Stabilization Work
 
-### P0: Local Env And Config Safety
+- The workspace was converted to JavaScript and JSX.
+- Server tests now run with Vitest.
+- Local env files are ignored explicitly.
+- Web API URL handling is centralized through `api-config.js`.
+- Dashboard overview uses `/api/dashboard` and `/api/posts/mine`.
+- Dashboard post management can publish, unpublish, and delete posts.
+- Editor save draft and publish actions use the posts API.
+- Image upload uses the protected upload API instead of fixed external image
+  URLs.
+- Profile and publication settings save through real APIs.
+- Subscriber management loads real subscribers from the publication API.
+- Auth forms surface validation and API errors.
+- Explore search uses the posts API.
+- Deployment documentation was expanded for local and production setup.
 
-- `.gitignore` has generic `.env` and `.env.*` coverage, but explicit app env entries should be added for clarity.
-- `apps/web/.env.example` and the requested local value disagree with current code:
-  - requested local shape: `NEXT_PUBLIC_API_URL=http://localhost:5000/api`
-  - current `apps/web/next.config.js` appends `/api/:path*`
-  - current `apps/web/services/content.js` fetches paths already starting with `/api`
-- `apps/web/app/layout.jsx` uses a hardcoded fallback app URL.
-- `apps/server/src/configs/swagger.js` uses a hardcoded localhost server URL fallback shape.
+## Remaining Stabilization Work
 
-### P0: Frontend Mocked Or Incomplete Features
+### P0: Cleanup And Source Of Truth
 
-- `apps/web/app/dashboard/page.jsx` renders `dashboardMetrics` and `seedPosts` instead of `/api/dashboard` and authenticated posts.
-- `apps/web/app/dashboard/posts/page.jsx` renders `seedPosts`; no edit, publish, unpublish, or delete actions are wired.
-- `apps/web/components/editor/editor-workspace.jsx` has inactive `Save draft` and `Publish` buttons.
-- `apps/web/components/editor/rich-editor.jsx` inserts a fixed Unsplash image URL instead of using upload/config flow.
-- `apps/web/app/dashboard/settings/page.jsx` has hardcoded publication settings and no save handler.
-- Dashboard pages are not protected on the frontend.
+- Remove or keep documented dead-code candidates only after usage checks.
+- Decide whether frontend seed fallback stays as explicit offline demo mode or
+  moves fully to backend demo seeding.
+- Refresh stale API contract documentation after route changes.
+- Split oversized backend test coverage into module-focused suites.
 
-### P1: Backend/API Gaps
+### P1: Auth And Session UX
 
-- Posts API has create/update/publish/unpublish/list/detail, but no delete endpoint.
-- Publications API supports create/update/list mine/detail/subscribe, but no subscriber-list endpoint for dashboard.
-- Dashboard API returns only counts; frontend needs recent work and richer states.
-- API tests are concentrated in one auth test file and do not cover each endpoint variant yet.
-- Duplicate-key database errors still need a centralized `409` mapper.
+- Wire `refreshSession()` into the frontend API flow.
+- Attempt refresh before redirecting protected dashboard routes to login.
+- Verify logout clears UI state and protected routes after browser refresh.
+- Consider server-side or middleware-based route protection only after cookie and
+  rewrite behavior is verified.
 
-### P1: Auth And Session UX Gaps
+### P1: Editor And Posts
 
-- Login/signup form redirects to dashboard, but no frontend session bootstrap/protected-route guard exists.
-- Logout UI is missing.
-- Refresh/session persistence is backend-ready but not verified through browser flow.
-- UI error messages are generic and do not consistently surface clean API messages.
+- Add a reliable edit/reopen flow for existing drafts and posts.
+- Add private post detail support if needed by the editor.
+- Validate publish readiness so empty reader content cannot go live.
+- Decide whether `archived` and `scheduled` post states stay hidden or become
+  supported flows.
 
-### P1: Reader And Subscription Gaps
+### P1: Reader And Subscription Flows
 
-- `apps/web/services/content.js` still uses seed fallback when no API URL is configured; production should prefer real API data.
-- `apps/web/services/content.js` returns `seedPublications` for publication listing instead of API data.
-- Subscribe form posts to API, but subscriber management is not surfaced in dashboard.
-- Search UI/API integration is incomplete.
+- Distinguish API failures from real empty public post and publication lists.
+- Move public subscribe/unsubscribe calls through a central publication service.
+- Add unsubscribe UI only where the product flow needs it.
+- Add pagination or cursor support for subscriber-heavy accounts.
 
-### P2: Deployment Readiness Gaps
+### P2: Deployment Readiness
 
-- Production deployment guide needs frontend/backend env variable tables.
-- Backend start requires real `MONGO_URI`; local verification should use ignored `.env`.
-- npm audit still reports Next's nested PostCSS advisory; npm's force fix suggests an unsafe Next downgrade.
-- Full browser smoke testing needs a reliable web+API dev launch using local env.
+- Reject localhost production values where practical.
+- Document `TRUST_PROXY`, `ENABLE_SWAGGER`, `API_PUBLIC_URL`, and cookie
+  expectations for production.
+- Run audit commands in a trusted environment before deployment.
+- Add browser smoke checks for home, explore, auth, dashboard, editor,
+  publication, post detail, subscribe, 404, and error states.
 
-## Stabilization Order
+## Current Recommended Order
 
-1. Make env/gitignore handling explicit and create local ignored env files.
-2. Normalize web API URL handling around one central helper.
-3. Add frontend auth session helper and dashboard route guard.
-4. Wire dashboard overview to `/api/dashboard` with loading/error/empty states.
-5. Extend posts API with delete and stronger endpoint tests.
-6. Wire dashboard post management to real post APIs.
-7. Wire editor save draft, edit, publish, and unpublish flows to APIs.
-8. Replace fixed editor image insertion with upload/config-ready flow.
-9. Add subscriber list API and wire subscriber dashboard.
-10. Wire publication/profile settings forms to real APIs with validation.
-11. Expand API tests for auth, users, publications, posts, subscriptions, dashboard, and error cases.
-12. Run browser verification for home, explore, publication, post detail, auth, dashboard, editor, subscribe, 404, and error states.
-13. Update deployment docs and run final lint, tests, build, audit, and secret scan.
+1. Commit the cleanup and UI stabilization roadmap.
+2. Refresh stale docs and audit notes.
+3. Perform safe cleanup with no behavior changes.
+4. Stabilize session persistence.
+5. Stabilize public API error states.
+6. Build edit/reopen draft flow.
+7. Centralize subscribe and unsubscribe services.
+8. Add backend demo seed workflow.
+9. Align UI pages with the provided editorial workspace references.
+10. Expand tests and run final deployment-readiness verification.
