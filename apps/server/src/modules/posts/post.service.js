@@ -16,6 +16,11 @@ function plainContent(content) {
   return content?.toObject ? content.toObject() : content;
 }
 
+function hasReaderContent(content) {
+  const postContent = plainContent(content);
+  return Boolean(postContent?.text?.trim());
+}
+
 async function assertPublicationOwner(publicationId, user) {
   const publication = await publicationsRepository.findById(publicationId);
   if (!publication) {
@@ -132,6 +137,9 @@ export const postsService = {
       throw new ApiError(HttpStatus.NOT_FOUND, "Post not found");
     }
     await assertPublicationOwner(entityId(post.publicationId), user);
+    if (!hasReaderContent(post.content)) {
+      throw new ApiError(HttpStatus.UNPROCESSABLE_ENTITY, "Add post content before publishing");
+    }
     const updated = await postsRepository.updateById(postId, {
       status: "published",
       publishedAt: post.publishedAt ?? new Date(),

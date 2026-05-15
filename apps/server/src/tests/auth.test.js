@@ -458,10 +458,17 @@ describe("auth", () => {
       name: "Publish Flow Publication",
       slug: "publish-flow-publication",
     });
-    const post = await request(app).post("/api/posts").set("Cookie", cookies).send({
-      publicationId: publication.body.data.id,
-      title: "Publish Flow Post",
-    });
+    const post = await request(app)
+      .post("/api/posts")
+      .set("Cookie", cookies)
+      .send({
+        publicationId: publication.body.data.id,
+        title: "Publish Flow Post",
+        content: {
+          html: "<p>Ready to publish</p>",
+          text: "Ready to publish",
+        },
+      });
 
     const publishResponse = await request(app)
       .post(`/api/posts/${post.body.data.id}/publish`)
@@ -478,6 +485,25 @@ describe("auth", () => {
     expect(unpublishResponse.body.data.status).toBe("draft");
     expect(unpublishResponse.body.data.publishedAt).toBeNull();
     expect(publicDetailResponse.status).toBe(404);
+  });
+
+  it("rejects publishing posts without reader content", async () => {
+    const cookies = await createSessionCookies();
+    const publication = await request(app).post("/api/publications").set("Cookie", cookies).send({
+      name: "Publish Guard Publication",
+      slug: "publish-guard-publication",
+    });
+    const post = await request(app).post("/api/posts").set("Cookie", cookies).send({
+      publicationId: publication.body.data.id,
+      title: "Empty Publish Guard Post",
+    });
+
+    const response = await request(app)
+      .post(`/api/posts/${post.body.data.id}/publish`)
+      .set("Cookie", cookies);
+
+    expect(response.status).toBe(422);
+    expect(response.body.message).toBe("Add post content before publishing");
   });
 
   it("deletes owned posts from the management list", async () => {
@@ -542,14 +568,28 @@ describe("auth", () => {
         slug: "filtered-desk-two",
       });
 
-    const firstPost = await request(app).post("/api/posts").set("Cookie", cookies).send({
-      publicationId: firstPublication.body.data.id,
-      title: "Filtered First Post",
-    });
-    const secondPost = await request(app).post("/api/posts").set("Cookie", cookies).send({
-      publicationId: secondPublication.body.data.id,
-      title: "Filtered Second Post",
-    });
+    const firstPost = await request(app)
+      .post("/api/posts")
+      .set("Cookie", cookies)
+      .send({
+        publicationId: firstPublication.body.data.id,
+        title: "Filtered First Post",
+        content: {
+          html: "<p>Filtered first content</p>",
+          text: "Filtered first content",
+        },
+      });
+    const secondPost = await request(app)
+      .post("/api/posts")
+      .set("Cookie", cookies)
+      .send({
+        publicationId: secondPublication.body.data.id,
+        title: "Filtered Second Post",
+        content: {
+          html: "<p>Filtered second content</p>",
+          text: "Filtered second content",
+        },
+      });
 
     await request(app).post(`/api/posts/${firstPost.body.data.id}/publish`).set("Cookie", cookies);
     await request(app).post(`/api/posts/${secondPost.body.data.id}/publish`).set("Cookie", cookies);
